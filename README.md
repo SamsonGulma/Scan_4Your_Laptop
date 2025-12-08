@@ -78,10 +78,16 @@ Run the Nextjs Dev. Server
 npm run dev
 ```
 
+---
 
 ##The Usage
 
   -Open the frontend in your browser (http://localhost:3000) --(Assuming you're already running the backend and your database)
+  
   -Register students via the registration form
+  
   -Scan barcodes via webcam or upload
+  
   -View scan results with success/error/warning alerts
+  
+---
