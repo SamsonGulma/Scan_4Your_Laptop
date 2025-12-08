@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Webcam Barcode Scanner</title>
+    <style>
+        video, canvas {
+            width: 80%;
+            margin-top: 20px;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+        }
+        body { text-align: center; font-family: Arial; }
+    </style>
+</head>
+<body>
+
+<h2>Webcam Barcode Scanner</h2>
+
+<video id="video" autoplay></video>
+<br>
+
+<button id="captureBtn">Capture & Scan</button>
+
+<h3 id="result"></h3>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const result = document.getElementById("result");
+    const captureBtn = document.getElementById("captureBtn");
+
+    // Start webcam
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => video.srcObject = stream)
+        .catch(err => alert("Camera error: " + err));
+
+    // Capture frame and send to FastAPI backend
+    captureBtn.onclick = async () => {
+        const ctx = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            formData.append("barcode_image", blob, "frame.jpg");
+
+            const res = await fetch("/scan/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.text();
+            result.innerHTML = data;
+        }, "image/jpeg");
+    };
+</script>
+
+</body>
+</html>

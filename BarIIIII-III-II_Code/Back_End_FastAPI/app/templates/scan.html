@@ -1,0 +1,291 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Barcode Scanner</title>-->
+<!--    <style>-->
+<!--        body {-->
+<!--            background: #111;-->
+<!--            color: white;-->
+<!--            text-align: center;-->
+<!--            font-family: Arial;-->
+<!--        }-->
+<!--        video {-->
+<!--            width: 80%;-->
+<!--            border: 3px solid #4CAF50;-->
+<!--            border-radius: 10px;-->
+<!--            margin-top: 20px;-->
+<!--        }-->
+<!--        #output {-->
+<!--            margin-top: 20px;-->
+<!--            font-size: 24px;-->
+<!--            color: #4CAF50;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--    <h1>Webcam Barcode Scanner</h1>-->
+
+<!--    <video id="video" autoplay></video>-->
+
+<!--    <div id="output">Scanning...</div>-->
+
+<!--    <script>-->
+<!--        const video = document.getElementById("video");-->
+<!--        const output = document.getElementById("output");-->
+
+<!--        // Setup webcam-->
+<!--        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })-->
+<!--            .then(stream => {-->
+<!--                video.srcObject = stream;-->
+<!--            })-->
+<!--            .catch(err => {-->
+<!--                alert("Camera access needed: " + err);-->
+<!--            });-->
+
+<!--        // QR DECODE (Pure JS using browser BarcodeDetector if available)-->
+<!--        const barcodeDetector = ('BarcodeDetector' in window)-->
+<!--            ? new BarcodeDetector({ formats: ['qr_code'] })-->
+<!--            : null;-->
+
+<!--        async function scanLoop() {-->
+<!--            if (barcodeDetector) {-->
+<!--                try {-->
+<!--                    const barcodes = await barcodeDetector.detect(video);-->
+
+<!--                    if (barcodes.length > 0) {-->
+<!--                        const code = barcodes[0].rawValue;-->
+<!--                        output.innerText = "Scanned: " + code;-->
+
+<!--                        // SEND TO FASTAPI-->
+<!--                        fetch("/scan-result", {-->
+<!--                  } catch (err) {-->
+<!--                          method: "POST",-->
+<!--                            headers: { "Content-Type": "application/json" },-->
+<!--                            body: JSON.stringify({ barcode: code })-->
+<!--                        });-->
+
+<!--                        return; // Stop scanning-->
+<!--                    }-->
+<!--                    console.error("Detection error:", err);-->
+<!--                }-->
+<!--            } else {-->
+<!--                output.innerText = "Your browser does not support BarcodeDetector.";-->
+<!--            }-->
+
+<!--            requestAnimationFrame(scanLoop);-->
+<!--        }-->
+
+<!--        scanLoop();-->
+<!--    </script>-->
+
+<!--</body>-->
+<!--</html>-->
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Webcam Barcode Scanner</title>-->
+<!--    <style>-->
+<!--        video, canvas {-->
+<!--            width: 80%;-->
+<!--            margin-top: 20px;-->
+<!--            border: 3px solid #4CAF50;-->
+<!--            border-radius: 10px;-->
+<!--        }-->
+<!--        body { text-align: center; font-family: Arial; }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<h2>Webcam Barcode Scanner</h2>-->
+
+<!--<video id="video" autoplay></video>-->
+<!--<br>-->
+
+<!--<button id="captureBtn">Capture & Scan</button>-->
+
+<!--<h3 id="result"></h3>-->
+
+<!--<canvas id="canvas" style="display:none;"></canvas>-->
+
+<!--<script>-->
+<!--    const video = document.getElementById("video");-->
+<!--    const canvas = document.getElementById("canvas");-->
+<!--    const result = document.getElementById("result");-->
+<!--    const captureBtn = document.getElementById("captureBtn");-->
+
+<!--    // Start webcam-->
+<!--    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })-->
+<!--        .then(stream => video.srcObject = stream)-->
+<!--        .catch(err => alert("Camera error: " + err));-->
+
+<!--    // Capture frame and send to FastAPI backend-->
+<!--    captureBtn.onclick = async () => {-->
+<!--        const ctx = canvas.getContext("2d");-->
+<!--        canvas.width = video.videoWidth;-->
+<!--        canvas.height = video.videoHeight;-->
+
+<!--        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);-->
+
+<!--        canvas.toBlob(async (blob) => {-->
+<!--            const formData = new FormData();-->
+<!--            formData.append("barcode_image", blob, "frame.jpg");-->
+
+<!--            const res = await fetch("/scan/upload", {-->
+<!--                method: "POST",-->
+<!--                body: formData-->
+<!--            });-->
+
+<!--            const data = await res.text();-->
+<!--            result.innerHTML = data;-->
+<!--        }, "image/png");-->
+<!--    };-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Barcode Scanner</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        video, canvas {
+            width: 80%;
+            margin-top: 15px;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+        }
+
+        #uploadPreview {
+            width: 80%;
+            margin-top: 15px;
+            border: 3px solid #2196F3;
+            border-radius: 10px;
+            display: none;
+        }
+
+        button {
+            margin: 10px;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            background: #4CAF50;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .upload-btn {
+            background: #2196F3;
+        }
+        .upload-btn:hover {
+            background: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Barcode Scanner</h2>
+
+<!-- CAMERA SECTION -->
+<video id="video" autoplay></video><br>
+<button id="captureBtn">Scan With Camera</button>
+
+<!-- UPLOAD SECTION -->
+<h3>OR Upload an Image</h3>
+<input type="file" id="imageInput" accept="image/*">
+<br>
+<img id="uploadPreview">
+
+<h3 id="result"></h3>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+    const video           = document.getElementById("video");
+    const canvas          = document.getElementById("canvas");
+    const result          = document.getElementById("result");
+    const captureBtn      = document.getElementById("captureBtn");
+    const imageInput      = document.getElementById("imageInput");
+    const uploadPreview   = document.getElementById("uploadPreview");
+
+    /* -------------------- CAMERA SETUP -------------------- */
+    function startCamera() {
+        navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
+        })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            alert("Camera access error: " + err);
+        });
+    }
+
+    startCamera();
+
+    /* -------------------- CAMERA SCAN -------------------- */
+    captureBtn.onclick = async () => {
+        result.innerHTML = "Scanning...";
+
+        const ctx = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            formData.append("barcode_image", blob, "frame.jpg");
+
+            const response = await fetch("/scan/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            const text = await response.text();
+            result.innerHTML = text;
+        }, "image/jpeg");
+    };
+
+    /* -------------------- IMAGE UPLOAD SCAN -------------------- */
+    imageInput.onchange = async function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        result.innerHTML = "Scanning...";
+
+        uploadPreview.src = URL.createObjectURL(file);
+        uploadPreview.style.display = "block";
+
+        const formData = new FormData();
+        formData.append("barcode_image", file);
+
+        const response = await fetch("/scan/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+        result.innerHTML = data.message;
+
+    };
+</script>
+
+</body>
+</html>

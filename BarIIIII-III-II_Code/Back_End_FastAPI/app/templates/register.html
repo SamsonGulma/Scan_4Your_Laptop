@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register User</title>
+</head>
+<body>
+<h2>User Registration</h2>
+<form method="post">
+    Name: <input type="text" name="name" required><br>
+    Has Laptop? <input type="checkbox" name="has_laptop"><br>
+    Laptop Name: <input type="text" name="laptop_name"><br>
+    <input type="submit" value="Register">
+</form>
+
+{% if barcode_path %}
+    <h3>Registered User: {{ user.name }}</h3>
+    <img src="{{ barcode_path }}" alt="Barcode">
+{% endif %}
+</body>
+</html>

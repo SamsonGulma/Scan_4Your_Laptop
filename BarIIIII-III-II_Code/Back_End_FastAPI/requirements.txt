@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+jinja2
+sqlalchemy
+databases[postgresql]
+python-barcode
+pillow
+psycopg2-binary
+pyzbar
+opencv-python
+python-multipart
+google-cloud-vision
